@@ -21,20 +21,20 @@ class SQLTail():
         self.filters = filters
         self.columns = self.get_columns()
         self.fields = self.init_fields(fields)
-        self.sql_fields = ','.join([f.name for f in self.fields])
+        self.sql_fields = ','.join([f for f in self.fields])
         self.logger.debug(f"{self}")
 
     def __str__(self):
         return f"{self.__class__.__name__}<{self.db} {self.table} {self.fields} {self.filters}"
 
     def init_fields(self, fields):
-        ret = []
+        ret = dict()
         column_map = {c.Field:c for c in self.columns}
         fields = fields or list(column_map.keys())
         for field in fields:
             column = column_map[field]
-            fmt = Field.fmt_datetime if column.Type.startswith('datetime') else None
-            ret.append(Field(column.Field, format_func=fmt, tz=self.tz))
+            hint = 'datetime' if column.Type.startswith('datetime') else None
+            ret[column.Field] = Field(column.Field, tz=self.tz, type_hint=hint)
         return ret 
             
     def get_columns(self):
@@ -48,15 +48,15 @@ class SQLTail():
         self.running = True
         last_id = self.get_last_row_id()
         while self.running:
-            #self.db.cxn.reconnect()
-            #self.db.cxn.database = self.db.database
+            self.db.cxn.reconnect()
+            self.db.cxn.database = self.db.database
             self.logger.debug(f"Querying new rows since last_id {last_id}...")
             with self.db.cursor() as cursor:
                 rows = self.get_new_rows(cursor, last_id)
             if len(rows):
                 self.logger.debug(f"{len(rows)} row{'' if len(rows)==1 else 's'} returned")
                 self.output_rows(rows)
-                last_id = rows[-1].id
+                last_id = rows[-1]._id
             elif timeout and (arrow.utcnow() > timeout):
                 self.logger.debug('Timeout')
                 self.running = False
@@ -74,7 +74,7 @@ class SQLTail():
 
     def get_new_rows(self, cursor, last_id):
         where = self.sql_where(f"id > {last_id}")
-        rows = cursor.query(f"SELECT {self.sql_fields} FROM {self.table} {where} ORDER BY id;")
+        rows = cursor.query(f"SELECT id as _id,{self.sql_fields} FROM {self.table} {where} ORDER BY id;")
         return rows
 
     def get_last_row_id(self):
@@ -88,13 +88,23 @@ class SQLTail():
                 callback(msg)
 
     def format_row(self, row):
-        return self.delimiter.join([self.fields[k].format_func(v) for k,v in row.items() if k in self.fields])
+        return self.delimiter.join([self.fields[k].fmt(v) for k,v in row.items() if k in self.fields])
+        line = []
+        for k,v in row.items():
+            if k in self.fields:
+                field = self.fields[k]
+                func = field.fmt
+                text = func(v)
+                line.append(text)
+        msg = self.delimiter.join(line)
+        return msg
+
 
 class Field():
-    def __init__(self, name, format_func=None, where_clause=None, truncate=0, left_pad=0, right_pad=0, tz=TZ):
+    def __init__(self, name, format_func=None, where_clause=None, truncate=0, left_pad=0, right_pad=0, tz=TZ, type_hint=None):
         self.logger=logging.getLogger(__class__.__name__)
         self.name = name
-        self.fmt = format_func or self.init_fmt_func(name)
+        self.fmt = format_func or self.init_fmt_func(name, type_hint)
         self.where_clause = where_clause
         self.truncate = truncate
         self.lpad = left_pad
@@ -105,10 +115,10 @@ class Field():
     def __str__(self):
         return f"{self.__class__.__name__}<{self.name} {self.fmt.__name__} {self.where_clause} {self.truncate} {self.lpad} {self.rpad} {self.tz}>"
 
-    def init_fmt_func(self, name):
-        if name == 'level':
+    def init_fmt_func(self, name, type_hint):
+        if type_hint=='loglevel' or name == 'level':
             fmt = self.fmt_loglevel
-        elif name in DATETIME_FIELD_NAMES:
+        elif type_hint=='datetime' or name in DATETIME_FIELD_NAMES:
             fmt = self.fmt_datetime
         else:
             fmt = self.fmt_str
@@ -118,9 +128,10 @@ class Field():
         return logging.getLevelName(int(level))
 
     def fmt_datetime(self, dt):
-        return arrow.Arrow(dt).to(self.tz).isoformat(' ')[:24]
+        return arrow.get(dt).to(self.tz).isoformat(' ')[:24]
 
     def fmt_str(self, value):
+        value = str(value)
         if self.lpad:
             value = ' '*(self.lpad-len(value))+value
             if self.truncate:

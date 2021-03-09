@@ -1,37 +1,38 @@
 # sqltail tests
 
-import sqltail.sqltail
-import sqltail.db
+import sqltail
 
 import datetime
 
+RUN_TIME=10
+
 def test_init():
-    db = sqltail.db.Database()
-    t = sqltail.sqltail.SQLTail(db)
+    db = sqltail.Database()
+    t = sqltail.SQLTail(db)
     assert t
 
 def test_run():
-    db = sqltail.db.Database()
-    t = sqltail.sqltail.SQLTail(db)
+    db = sqltail.Database()
+    t = sqltail.SQLTail(db)
     start = datetime.datetime.now()
-    ret = t.run(timeout=3)
+    ret = t.run(timeout=RUN_TIME)
     elapsed = (datetime.datetime.now() - start).seconds
-    assert elapsed >= 3
+    assert elapsed >= RUN_TIME 
 
 def test_fields():
-    db = sqltail.db.Database()
+    db = sqltail.Database()
     fields=['timestamp', 'level', 'message']
-    t = sqltail.sqltail.SQLTail(db, fields=fields)
+    t = sqltail.SQLTail(db, fields=fields)
     start = datetime.datetime.now()
-    ret = t.run(timeout=3)
+    ret = t.run(timeout=RUN_TIME)
     elapsed = (datetime.datetime.now() - start).seconds
-    assert elapsed >= 3
+    assert elapsed >= RUN_TIME 
 
 def test_filters():
-    db = sqltail.db.Database()
+    db = sqltail.Database()
     filters=['level=10']
-    t = sqltail.sqltail.SQLTail(db, filters=filters)
+    t = sqltail.SQLTail(db, filters=filters)
     start = datetime.datetime.now()
-    ret = t.run(timeout=3)
+    ret = t.run(timeout=RUN_TIME)
     elapsed = (datetime.datetime.now() - start).seconds
-    assert elapsed >= 3
+    assert elapsed >= RUN_TIME
