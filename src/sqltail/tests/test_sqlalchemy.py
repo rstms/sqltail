@@ -5,19 +5,23 @@ import time
 import logging
 from pprint import pprint as pp
 
-from sqlalchemy import create_engine, MetaData, Table, desc 
-from sqlalchemy.sql import select
+import pytest
 
+URI = f"mysql+mysqldb://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_DATABASE']}"
 
-#uri = f"mysql+mysqlconnector://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_DATABASE']}"
-uri = f"mysql+mysqldb://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_DATABASE']}"
+@pytest.fixture()
+def engine():
+    from sqlalchemy import create_engine, MetaData, Table, desc 
+    from sqlalchemy.sql import select
 
-engine = create_engine(uri)
-assert engine
-meta = MetaData()
-meta.reflect(bind=engine)
+    engine = create_engine(uri)
+    assert engine
+    meta = MetaData()
+    meta.reflect(bind=engine)
+    yield engine
 
-def test_tail_multi_connect():
+@pytest.mark.skipif(not os.environ.get('SQLALCHEMY'), reason='define SQLALCHEMY to enable')
+def test_tail_multi_connect(engine):
 
     log = meta.tables['log']
     fields = (log.c.id, log.c.timestamp, log.c.level, log.c.message)
@@ -38,7 +42,8 @@ def test_tail_multi_connect():
                     max_id = row.id
         time.sleep(1)
 
-def test_tail_single_connect():
+@pytest.mark.skipif(not os.environ.get('SQLALCHEMY'), reason='define SQLALCHEMY to enable')
+def test_tail_single_connect(engine):
 
     log = meta.tables['log']
     fields = (log.c.id, log.c.timestamp, log.c.level, log.c.message)

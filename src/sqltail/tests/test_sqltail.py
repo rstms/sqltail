@@ -3,8 +3,9 @@
 import sqltail
 
 import datetime
+import os
 
-RUN_TIME=10
+RUN_TIME=int(os.environ.get('RUN_TIME', '10'))
 
 def test_init():
     db = sqltail.Database()
@@ -18,6 +19,9 @@ def test_run():
     ret = t.run(timeout=RUN_TIME)
     elapsed = (datetime.datetime.now() - start).seconds
     assert elapsed >= RUN_TIME 
+
+def test_template():
+    result = sqltail.SQLTail(sqltail.Database()).get_field_template()
 
 def test_fields():
     db = sqltail.Database()

@@ -30,16 +30,37 @@ class SQLTail():
     def init_fields(self, fields):
         ret = dict()
         column_map = {c.Field:c for c in self.columns}
-        fields = fields or list(column_map.keys())
-        for field in fields:
-            column = column_map[field]
-            hint = 'datetime' if column.Type.startswith('datetime') else None
-            ret[column.Field] = Field(column.Field, tz=self.tz, type_hint=hint)
+        if not fields:
+            fields = list(column_map.keys())
+        elif isinstance(fields, str):
+            fields = fields.split(',')
+        elif isinstance(fields, list):
+            if isinstance(fields[0],str):
+                pass   # fields may be a list of column names
+            elif isinstance(fields[0], dict):
+                # fields is a list of field spec dicts
+                for spec in fields:
+                    field = Field(**spec)
+                    ret[field.name]=field
+                fields = None
+            else:
+                TypeError('Unable to interpret fields specification')
+        else:
+            raise TypeError('fields may be a list of either column names or field specifiers') 
+
+        if fields:
+            for field in fields:
+                column = column_map[field]
+                hint = 'datetime' if column.Type.startswith('datetime') else None
+                ret[column.Field] = Field(column.Field, tz=self.tz, type_hint=hint)
         return ret 
             
     def get_columns(self):
         with self.db.cursor() as cursor:
             return cursor.query(f"DESCRIBE {self.table};")
+
+    def get_field_template(self):
+        return [field.template() for field in self.fields.values()]
 
     def run(self, timeout=None):
         self.logger.debug('run: begin')
@@ -101,10 +122,12 @@ class SQLTail():
 
 
 class Field():
-    def __init__(self, name, format_func=None, where_clause=None, truncate=0, left_pad=0, right_pad=0, tz=TZ, type_hint=None):
+    def __init__(self, name=None, format_func=None, where_clause=None, truncate=0, left_pad=0, right_pad=0, tz=TZ, type_hint=None):
         self.logger=logging.getLogger(__class__.__name__)
+        if not name:
+            raise ValueError("Field name cannot be None")
         self.name = name
-        self.fmt = format_func or self.init_fmt_func(name, type_hint)
+        self.fmt = self.init_fmt_func(format_func, name, type_hint)
         self.where_clause = where_clause
         self.truncate = truncate
         self.lpad = left_pad
@@ -115,13 +138,30 @@ class Field():
     def __str__(self):
         return f"{self.__class__.__name__}<{self.name} {self.fmt.__name__} {self.where_clause} {self.truncate} {self.lpad} {self.rpad} {self.tz}>"
 
-    def init_fmt_func(self, name, type_hint):
-        if type_hint=='loglevel' or name == 'level':
-            fmt = self.fmt_loglevel
-        elif type_hint=='datetime' or name in DATETIME_FIELD_NAMES:
-            fmt = self.fmt_datetime
+    def template(self):
+        return dict( 
+                name=self.name, 
+                format_func=self.fmt.__name__, 
+                where_clause=self.where_clause, 
+                truncate=self.truncate,
+                left_pad=self.lpad,
+                right_pad=self.rpad,
+                tz=self.tz
+            )
+
+    def init_fmt_func(self, fmt_func, name, type_hint):
+        if fmt_func:
+            if isinstance(fmt_func, str):
+                fmt = getattr(self, fmt_func)
+            else:
+                fmt = fmt_func
         else:
-            fmt = self.fmt_str
+            if type_hint=='loglevel' or name == 'level':
+                fmt = self.fmt_loglevel
+            elif type_hint=='datetime' or name in DATETIME_FIELD_NAMES:
+                fmt = self.fmt_datetime
+            else:
+                fmt = self.fmt_str
         return fmt
 
     def fmt_loglevel(self, level):

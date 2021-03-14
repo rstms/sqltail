@@ -1,0 +1,20 @@
+[
+  {"name": "id", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "timestamp", "format_func": "fmt_datetime", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "name", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "level", "format_func": "fmt_loglevel", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "filename", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "line", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "module", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "function", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "pathname", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "process_id", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "process_name", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "thread_id", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "thread_name", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "message", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "exception_info", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "instance", "format_func": "fmt_str", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "created", "format_func": "fmt_datetime", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"},
+  {"name": "updated", "format_func": "fmt_datetime", "where_clause": null, "truncate": 0, "left_pad": 0, "right_pad": 0, "tz": "UTC"}
+]

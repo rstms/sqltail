@@ -1,0 +1,6 @@
+[
+  {"name": "id"},
+  {"name": "level"},
+  {"name": "timestamp"},
+  {"name": "message"}
+]
