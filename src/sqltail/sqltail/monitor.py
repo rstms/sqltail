@@ -4,6 +4,18 @@ import logging
 import time
 import copy
 
+"""
+ideas:
+
+    Instead of reconnecting and querying for max row ID,
+    create a UDF on the server that does the query in a loop and sleeps, only returning data
+    when the MAX ID has changed, or a timeout occurs,
+    then we don't constantly create/destroy connections and cursors
+    we sit in a select, and when the data returns, it's either a timeout or a new max-row-id
+
+"""
+    
+
 TZ='UTC'
 DATETIME_FIELD_NAMES = ['timestamp', 'created', 'updated']
 

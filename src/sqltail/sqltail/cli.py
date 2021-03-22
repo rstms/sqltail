@@ -22,12 +22,13 @@ from sqltail import SQLTail, Database, __version__
 @click.option('--template', type=str, default=None, help='json field template, or @FILENAME containing same')
 @click.option('--get-template', is_flag=True, help='output json field template')
 @click.option('--get-columns', is_flag=True)
+@click.option('-t', '--table', default='log', type=str, help='table name')
 @click.option('-c', '--columns', default=None, type=str, help='comma delimited list of output column names')
 @click.option('-f', '--filters', default=None, type=str, help='list of filter conditions') 
 @click.option('-o', '--output-format', default='json', type=str, help='output format') 
 @click.option('-l', '--log-level', envvar="LOG_LEVEL", default='WARNING', type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False))
 
-def sqltail(host, port, user, password, database, config_file, timeout, interval, timezone, columns, filters, log_level, get_template, get_columns, template, output_format):
+def sqltail(host, port, user, password, database, config_file, timeout, interval, timezone, columns, filters, log_level, get_template, get_columns, table, template, output_format):
 
     logging.basicConfig(level=log_level.upper())
 
@@ -41,6 +42,7 @@ def sqltail(host, port, user, password, database, config_file, timeout, interval
 
     sql_tail = SQLTail(
         db, 
+        table=table,
         fields=columns, 
         filters=filters,
         callbacks=[output],
