@@ -3,6 +3,8 @@
 import sqltail
 
 import datetime
+import json
+import logging
 import os
 
 RUN_TIME=int(os.environ.get('RUN_TIME', '10'))
@@ -40,3 +42,16 @@ def test_filters():
     ret = t.run(timeout=RUN_TIME)
     elapsed = (datetime.datetime.now() - start).seconds
     assert elapsed >= RUN_TIME
+
+def test_events():
+
+    logging.basicConfig(level='DEBUG')
+    RUN_TIME=3600
+    db = sqltail.Database()
+    template='[{"name":"session_id"},{"name":"form_id"},{"name":"event"},{"name":"detail"}]'
+    t = sqltail.SQLTail(db, table='events', fields=json.loads(template))
+    start = datetime.datetime.now()
+    ret = t.run(timeout=RUN_TIME)
+    elapsed = (datetime.datetime.now() - start).seconds
+    assert elapsed >= RUN_TIME
+

@@ -13,3 +13,6 @@ test:
 
 debug:
 	dev make debug
+
+install:
+	cd src/sqltail; sudo pip install -U . 

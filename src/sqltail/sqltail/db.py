@@ -9,10 +9,21 @@ import traceback
 import configparser
 import pathlib
 
+class DatabaseException(Exception):
+    """base class for Database exceptions""" 
+    pass
+               
+class DatabaseConnectionFailed(DatabaseException):
+    pass
+
+class DatabaseNotFound(Exception):
+    """Raised when the expected database is not present."""
+    pass
+
 
 class Database():
 
-    def __init__(self, host=None, port=None, user=None, password=None, database=None, config_file=None, debug=False, verbose=False):
+    def __init__(self, host=None, port=None, user=None, password=None, database=None, config_file=None, debug=False, verbose=False, suffix=None):
 
         self.cxn = None
         self.debug = debug
@@ -26,11 +37,12 @@ class Database():
         self.user = self.get_parameter(user, 'DB_USER', 'client', 'user')
         self.password = self.get_parameter(password, 'DB_PASSWORD', 'client', 'password')
         self.database = self.get_parameter(database, 'DB_DATABASE', 'client', 'database')
-
+        if suffix:
+            self.database += suffix
 
         # connect without specifying a database
         if not self.connect(database=None):
-            raise RuntimeError(f"Failed connection to database {self.connection_string}")
+            raise DatabaseConectionFailed(f"Failed connection to database {self.connection_string}")
 
         # verify the expected database is present
         with self.cursor(tuple=True) as cursor:
@@ -39,7 +51,7 @@ class Database():
         self.logger.debug(f"databases found: {repr(available_databases)}")
 
         if not self.database in available_databases:
-            raise RuntimeError(f"Database {self.database} is not present.")
+            raise DatabaseNotFound(f"Database {self.database} is not present.")
 
         # specify the database we need
         self.cxn.database = self.database;

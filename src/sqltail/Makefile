@@ -8,7 +8,7 @@ install-test:
 install:
 	sudo pip install -U -e .
 
-test:
+test: install
 	pytest
 
 debug:

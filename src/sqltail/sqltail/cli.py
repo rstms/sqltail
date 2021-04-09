@@ -4,9 +4,10 @@ import arrow
 import click
 import json
 import logging
+import time
 from pathlib import Path
 
-from sqltail import SQLTail, Database, __version__
+from sqltail import SQLTail, Database, DatabaseNotFound, DatabaseConnectionFailed, __version__
 
 @click.command(name='sqltail')
 @click.version_option()
@@ -22,17 +23,42 @@ from sqltail import SQLTail, Database, __version__
 @click.option('--template', type=str, default=None, help='json field template, or @FILENAME containing same')
 @click.option('--get-template', is_flag=True, help='output json field template')
 @click.option('--get-columns', is_flag=True)
+@click.option('-s/-S', '--suffix/--no-suffix', is_flag=True, default=True, help="append '_log' to db name")
+@click.option('-r/-R', '--retry/--no-retry', is_flag=True, default=True, help="retry on database connection failures")
 @click.option('-t', '--table', default='log', type=str, help='table name')
 @click.option('-c', '--columns', default=None, type=str, help='comma delimited list of output column names')
 @click.option('-f', '--filters', default=None, type=str, help='list of filter conditions') 
 @click.option('-o', '--output-format', default='json', type=str, help='output format') 
 @click.option('-l', '--log-level', envvar="LOG_LEVEL", default='WARNING', type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False))
 
-def sqltail(host, port, user, password, database, config_file, timeout, interval, timezone, columns, filters, log_level, get_template, get_columns, table, template, output_format):
+def sqltail(host, port, user, password, database, config_file, timeout, interval, timezone, columns, filters, log_level, get_template, get_columns, table, template, output_format, suffix, retry):
 
     logging.basicConfig(level=log_level.upper())
 
-    db=Database(host, port, user, password, database, config_file=config_file, debug=log_level=='DEBUG')
+    if suffix:
+        suffix = '_log'
+    else:
+        suffix = None 
+
+    state = None
+    while True:
+        try:
+            db=Database(host, port, user, password, database, config_file=config_file, debug=log_level=='DEBUG', suffix=suffix)
+        except DatabaseNotFound as exc:
+            if state != type(exc):
+                click.echo(str(exc)+' retrying...')
+                state = type(exc)
+        except DatabaseConnectionFailed as exc:
+            if state != type(exc):
+                click.echo(str(exc)+' retrying...')
+                state = type(exc)
+        else:
+            state = None
+            break
+        time.sleep(3)
+        if not retry:
+            click.exit(1)
+        
     columns = columns.split(',') if columns else []
     filters = filters.split(',') if filters else []
     if template:

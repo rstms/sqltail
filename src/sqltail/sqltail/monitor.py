@@ -19,6 +19,10 @@ ideas:
 TZ='UTC'
 DATETIME_FIELD_NAMES = ['timestamp', 'created', 'updated']
 
+WAIT_INTERVAL_INIT=0.1
+WAIT_INTERVAL_MULTIPLIER=2
+WAIT_INTERVAL_MAX=1
+
 class SQLTail():
     def __init__(self, db, table='log', fields=[], filters=[], delimiter=' ', interval=1, callbacks=[print], tz=TZ):
 
@@ -80,6 +84,7 @@ class SQLTail():
             timeout = arrow.utcnow() + datetime.timedelta(seconds=timeout)
         self.running = True
         last_id = self.get_last_row_id()
+        wait_interval = WAIT_INTERVAL_INIT
         while self.running:
             self.db.cxn.reconnect()
             self.db.cxn.database = self.db.database
@@ -87,6 +92,7 @@ class SQLTail():
             with self.db.cursor() as cursor:
                 rows = self.get_new_rows(cursor, last_id)
             if len(rows):
+                wait_interval = WAIT_INTERVAL_INIT
                 self.logger.debug(f"{len(rows)} row{'' if len(rows)==1 else 's'} returned")
                 self.output_rows(rows)
                 last_id = rows[-1]._id
@@ -94,9 +100,12 @@ class SQLTail():
                 self.logger.debug('Timeout')
                 self.running = False
             else:
+                if wait_interval < WAIT_INTERVAL_MAX:
+                    wait_interval *= WAIT_INTERVAL_MULTIPLIER
+                else:
+                    wait_interval = WAIT_INTERVAL_MAX
                 self.logger.debug('No rows returned; sleeping...')
-                time.sleep(self.interval)
-
+                time.sleep(wait_interval)
         self.logger.debug('run: end')
 
     def sql_where(self, where=None):
@@ -168,16 +177,11 @@ class Field():
             else:
                 fmt = fmt_func
         else:
-            if type_hint=='loglevel' or name == 'level':
-                fmt = self.fmt_loglevel
-            elif type_hint=='datetime' or name in DATETIME_FIELD_NAMES:
+            if type_hint=='datetime' or name in DATETIME_FIELD_NAMES:
                 fmt = self.fmt_datetime
             else:
                 fmt = self.fmt_str
         return fmt
-
-    def fmt_loglevel(self, level):
-        return logging.getLevelName(int(level))
 
     def fmt_datetime(self, dt):
         return arrow.get(dt).to(self.tz).isoformat(' ')[:24]

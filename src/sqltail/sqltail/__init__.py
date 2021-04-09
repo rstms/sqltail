@@ -1,6 +1,6 @@
 # sqltail
 
 from sqltail.monitor import SQLTail
-from sqltail.db import Database
+from sqltail.db import Database, DatabaseException, DatabaseConnectionFailed, DatabaseNotFound
 
-__version__='0.0.2'
+__version__='0.0.3'
