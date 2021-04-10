@@ -23,7 +23,7 @@ class DatabaseNotFound(Exception):
 
 class Database():
 
-    def __init__(self, host=None, port=None, user=None, password=None, database=None, config_file=None, debug=False, verbose=False, suffix=None):
+    def __init__(self, host=None, port=None, user=None, password=None, database=None, config_file=None, debug=False, verbose=False, suffix=''):
 
         self.cxn = None
         self.debug = debug

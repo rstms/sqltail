@@ -20,10 +20,10 @@ from sqltail import SQLTail, Database, DatabaseNotFound, DatabaseConnectionFaile
 @click.option('--timeout', default=None, type=float)
 @click.option('--interval', default=1, type=int)
 @click.option('--timezone', envvar='TZ', default='UTC')
-@click.option('--template', type=str, default=None, help='json field template, or @FILENAME containing same')
+@click.option('--template', type=str, default=None, help='json field template, or @FILENAME in cwd or ~/.sqltail')
 @click.option('--get-template', is_flag=True, help='output json field template')
 @click.option('--get-columns', is_flag=True)
-@click.option('-s/-S', '--suffix/--no-suffix', is_flag=True, default=True, help="append '_log' to db name")
+@click.option('--suffix', type=str, default='_log', help="append SUFFIX to db name (defaults to _log)")
 @click.option('-r/-R', '--retry/--no-retry', is_flag=True, default=True, help="retry on database connection failures")
 @click.option('-t', '--table', default='log', type=str, help='table name')
 @click.option('-c', '--columns', default=None, type=str, help='comma delimited list of output column names')
@@ -34,11 +34,6 @@ from sqltail import SQLTail, Database, DatabaseNotFound, DatabaseConnectionFaile
 def sqltail(host, port, user, password, database, config_file, timeout, interval, timezone, columns, filters, log_level, get_template, get_columns, table, template, output_format, suffix, retry):
 
     logging.basicConfig(level=log_level.upper())
-
-    if suffix:
-        suffix = '_log'
-    else:
-        suffix = None 
 
     state = None
     while True:
@@ -63,7 +58,11 @@ def sqltail(host, port, user, password, database, config_file, timeout, interval
     filters = filters.split(',') if filters else []
     if template:
         if template.startswith('@'):
-            template = Path(template[1:]).read_text()
+            template_path = Path(template[1:])
+            if not template_path.is_file():
+                template_path = Path.home() / '.sqltail' / template[1:]
+            template = template_path.read_text()
+
         columns = from_json(template)
 
     sql_tail = SQLTail(
