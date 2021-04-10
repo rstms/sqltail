@@ -153,4 +153,4 @@ cruft/
 *.crt
 *.key
 htpasswd
-env
+.env

@@ -7,7 +7,7 @@ import json
 import logging
 import os
 
-RUN_TIME=int(os.environ.get('RUN_TIME', '10'))
+RUN_TIME=int(os.environ.get('RUN_TIME', '1'))
 
 def test_init():
     db = sqltail.Database(suffix='_log')

@@ -7,10 +7,10 @@ import logging
 import time
 from pathlib import Path
 
-from sqltail import SQLTail, Database, DatabaseNotFound, DatabaseConnectionFailed, __version__
+from sqltail import SQLTail, Database, DatabaseNotFound, DatabaseConnectionFailed, __version__, __license__
 
 @click.command(name='sqltail')
-@click.version_option()
+@click.version_option(message=f"sqltail v{__version__} {__license__}")
 @click.option('--host', envvar='DB_HOST', type=str)
 @click.option('--port', envvar='DB_PORT', type=str)
 @click.option('--user', envvar='DB_USER', type=str)

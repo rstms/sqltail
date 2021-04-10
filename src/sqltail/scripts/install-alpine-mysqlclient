@@ -1,7 +1,0 @@
-#!/bin/bash
-
-sudo apk update && \
-sudo apk add --virtual build-deps gcc python3-dev musl-dev && \
-sudo apk add --no-cache mariadb-dev && \
-sudo pip install mysqlclient && \
-sudo apk del build-deps
