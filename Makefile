@@ -23,18 +23,11 @@ test: install
 debug:
 	dotenv run pytest --pdb
 
-
-define bump
-bumpversion $1;
-dotenv set VERSION $$(cat VERSION);
-sed "s/^\(.*__version__.*=.*'\)\(.*\)\('.*\)$$/\1$$(cat VERSION)\3/" -i $(PROJECT)/__init__.py
-endef
-
 bump-patch:
-	$(call bump,patch)
+	bumpversion patch
 
 bump-minor:
-	$(call bump,minor)
+	bumpversion minor
 
 bump-major:
-	$(call bump,major)
+	bumpversion major
