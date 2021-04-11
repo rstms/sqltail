@@ -1,6 +1,11 @@
 # sqltail
 Command line tool to tail a SQL query
 
+[![PyPI](https://img.shields.io/pypi/v/sqltail.svg)](https://pypi.org/project/sqltail/)
+[![Changelog](https://img.shields.io/github/v/release/rstms/sqltail?include_prereleases&label=changelog)](https://github.com/rstms/sqltail/releases)
+[![Tests](https://github.com/rstms/sqltail/workflows/Test/badge.svg)](https://github.com/rstms/sqltai/actions?query=workflow%3ATest)
+[![License](https://img.shields.io/github/license/rstms/sqltail)](https://github.com/rstms/sqltai/blob/master/LICENSE)
+
 ```
 Usage: sqltail [OPTIONS]
 
