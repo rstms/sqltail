@@ -7,10 +7,13 @@ from pprint import pprint as pp
 
 import pytest
 
-URI = f"mysql+mysqldb://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_DATABASE']}"
+@pytest.fixture()
+def uri():
+    return f"mysql+mysqldb://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_DATABASE']}"
 
 @pytest.fixture()
-def engine():
+@pytest.mark.skipif(not os.environ.get('DB_HOST'), reason='define DB_VARS to enable')
+def engine(uri):
     from sqlalchemy import create_engine, MetaData, Table, desc 
     from sqlalchemy.sql import select
 
