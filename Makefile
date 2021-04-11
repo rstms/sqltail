@@ -1,18 +1,33 @@
 #
-# sqltail dev/test comands
+#   MIT Licensed
+#
+#   git@github.com/rstms/tzc
+#   mkrueger@rstms.net
 #
 
+PROJECT=$(notdir $(shell pwd))
+
 help:
-	@echo Targets: run test
+	@echo Project: $(PROJECT)
+	@echo Targets: $$(awk -F: '/^[[:graph:]]*:/{print $$1}' Makefile)
 
-run:
-	dev make run
-
-test:
-	dev make test 
-
-debug:
-	dev make debug
+install-test:
+	sudo pip install -U -e .[test]
 
 install:
-	cd src/sqltail; sudo pip install -U . 
+	sudo pip install -U -e .
+
+test: install
+	dotenv run pytest
+
+debug:
+	dotenv run pytest --pdb
+
+bump-patch:
+	bumpversion patch
+
+bump-minor:
+	bumpversion minor
+
+bump-major:
+	bumpversion major
