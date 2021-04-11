@@ -6,6 +6,7 @@ Command line tool to tail a SQL query
 [![Tests](https://github.com/rstms/sqltail/workflows/Test/badge.svg)](https://github.com/rstms/sqltail/actions?query=workflow%3ATest)
 [![License](https://img.shields.io/github/license/rstms/sqltail)](https://github.com/rstms/sqltai/blob/master/LICENSE)
 
+
 ```
 Usage: sqltail [OPTIONS]
 
